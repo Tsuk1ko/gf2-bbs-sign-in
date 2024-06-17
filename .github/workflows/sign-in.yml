@@ -1,0 +1,19 @@
+name: Sign in
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 23 * * *'
+
+jobs:
+  sign-in:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Sign in
+        env:
+          BBS_AUTH: ${{ secrets.BBS_AUTH }}
+        run: bun .
