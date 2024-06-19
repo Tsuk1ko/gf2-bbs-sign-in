@@ -103,7 +103,7 @@ export class GF2BBSClient {
   async exchangeIfCan(item: ExchangeItem) {
     let exchangeCount = 0;
     while (
-      this.score > item.use_score &&
+      this.score >= item.use_score &&
       exchangeCount + item.exchange_count < item.max_exchange_count &&
       exchangeCount < 10 // 意外保护
     ) {
