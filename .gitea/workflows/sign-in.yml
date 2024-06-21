@@ -15,4 +15,5 @@ jobs:
         env:
           BBS_AUTH: ${{ secrets.BBS_AUTH }}
           AUTO_EXCHANGE: ${{ secrets.AUTO_EXCHANGE }}
+          FAILED_WEBHOOK: ${{ secrets.FAILED_WEBHOOK }}
         run: bun .

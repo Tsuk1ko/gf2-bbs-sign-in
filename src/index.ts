@@ -1,6 +1,6 @@
 import { GF2BBSClient } from './client';
 
-const { BBS_AUTH, AUTO_EXCHANGE } = process.env;
+const { BBS_AUTH, AUTO_EXCHANGE, FAILED_WEBHOOK } = process.env;
 
 if (!BBS_AUTH) {
   console.error('No BBS_AUTH');
@@ -52,4 +52,7 @@ for (const [i, auth] of BBS_AUTH.split(',').entries()) {
   }
 }
 
-if (hasError) process.exit(1);
+if (hasError) {
+  if (FAILED_WEBHOOK) await fetch(FAILED_WEBHOOK).catch(console.error);
+  process.exit(1);
+}
