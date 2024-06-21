@@ -2,7 +2,7 @@
 
 少前2社区每日签到
 
-## Secrets / ENV
+## Secrets / Variables / ENV
 
 - `BBS_AUTH` (必须)  
   前往[官方社区](https://gf2-bbs.sunborngame.com/)，登录后 <kbd>F12</kbd> Network 随便找个 API 请求 Request Headers 里拿到 Authorization，可多账号，以逗号 `,` 分隔
