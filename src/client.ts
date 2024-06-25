@@ -2,10 +2,12 @@ import {
   API_EXCHANGE_ITEM,
   API_EXCHANGE_LIST,
   API_GET_SIGN_IN_STATUS,
+  API_LOGIN,
   API_SIGN_IN,
   API_USER_INFO,
   COMMON_HEADER,
 } from './const';
+import encrypt from './encrypt';
 
 interface GF2BBSAPIResp<T = {}> {
   Code: number;
@@ -26,14 +28,33 @@ interface ExchangeItem {
 }
 
 export class GF2BBSClient {
+  private password: string;
+  private token?: string;
   private score = 0;
 
-  constructor(private auth: string) {}
+  constructor(private username: string, password: string) {
+    this.password = encrypt(password);
+  }
+
+  async login() {
+    const data = await this.callApi<{
+      account: {
+        token: string;
+        uid: number;
+        platform_id: number;
+        channel_id: number;
+      };
+    }>(API_LOGIN, {
+      account_name: this.username,
+      passwd: this.password,
+      source: 'phone',
+    });
+
+    this.token = data.account.token;
+  }
 
   async getSignInStatus() {
-    const data = await this.callApi<{ has_sign_in: boolean }>(
-      API_GET_SIGN_IN_STATUS
-    );
+    const data = await this.callApi<{ has_sign_in: boolean }>(API_GET_SIGN_IN_STATUS);
 
     return data.has_sign_in;
   }
@@ -117,12 +138,12 @@ export class GF2BBSClient {
   private async callApi<T = {}>(url: string, body?: Record<string, any>) {
     const res: GF2BBSAPIResp<T> = await fetch(url, {
       headers: {
-        Authorization: this.auth,
-        ...COMMON_HEADER,
+        ...(this.token ? { Authorization: this.token } : {}),
         ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...COMMON_HEADER,
       },
       ...(body ? { method: 'POST', body: JSON.stringify(body) } : {}),
-    }).then((r) => r.json());
+    }).then(r => r.json());
 
     if (res.Code !== 0) throw new Error(res.Message);
 

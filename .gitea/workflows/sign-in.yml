@@ -13,7 +13,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Sign in
         env:
-          BBS_AUTH: ${{ secrets.BBS_AUTH || vars.BBS_AUTH }}
+          BBS_USERNAME: ${{ secrets.BBS_USERNAME || vars.BBS_USERNAME }}
+          BBS_PASSWORD: ${{ secrets.BBS_PASSWORD || vars.BBS_PASSWORD }}
           AUTO_EXCHANGE: ${{ secrets.AUTO_EXCHANGE || vars.AUTO_EXCHANGE }}
           FAILED_WEBHOOK: ${{ secrets.FAILED_WEBHOOK || vars.FAILED_WEBHOOK }}
         run: bun .
