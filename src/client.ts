@@ -1,50 +1,37 @@
-import {
-  API_EXCHANGE_ITEM,
-  API_EXCHANGE_LIST,
-  API_GET_SIGN_IN_STATUS,
-  API_LOGIN,
-  API_SIGN_IN,
-  API_USER_INFO,
-  COMMON_HEADER,
-} from './const';
+import { createApi } from './api';
+import { API_BASE, COMMON_HEADER } from './const';
 import encrypt from './encrypt';
-
-interface GF2BBSAPIResp<T = {}> {
-  Code: number;
-  Message: string;
-  data: T;
-}
-
-interface ExchangeItem {
-  exchange_id: number;
-  item_name: string;
-  item_count: number;
-  item_pic: string;
-  item_context: string;
-  use_score: number;
-  exchange_count: number;
-  max_exchange_count: number;
-  cycle: 'day' | 'month';
-}
+import type { GF2API, GF2APIResp, ExchangeItem } from './types';
 
 export class GF2BBSClient {
   private password: string;
   private token?: string;
   private score = 0;
 
+  private api = createApi<GF2API>(API_BASE, async (method, urlStr, data) => {
+    const url = new URL(urlStr);
+    if (method === 'get' && data) {
+      Object.entries(data).forEach(([k, v]) => url.searchParams.set(k, v));
+    }
+    const isPost = method === 'post';
+    const res: GF2APIResp = await fetch(url, {
+      headers: {
+        ...(this.token ? { Authorization: this.token } : {}),
+        ...(isPost ? { 'Content-Type': 'application/json' } : {}),
+        ...COMMON_HEADER,
+      },
+      ...(isPost ? { method: 'POST', body: JSON.stringify(data || {}) } : {}),
+    }).then(r => r.json());
+    if (res.Code !== 0) throw new Error(res.Message);
+    return res.data;
+  });
+
   constructor(private username: string, password: string) {
     this.password = encrypt(password);
   }
 
   async login() {
-    const data = await this.callApi<{
-      account: {
-        token: string;
-        uid: number;
-        platform_id: number;
-        channel_id: number;
-      };
-    }>(API_LOGIN, {
+    const data = await this.api.login.account.post({
       account_name: this.username,
       passwd: this.password,
       source: 'phone',
@@ -54,19 +41,13 @@ export class GF2BBSClient {
   }
 
   async getSignInStatus() {
-    const data = await this.callApi<{ has_sign_in: boolean }>(API_GET_SIGN_IN_STATUS);
+    const data = await this.api.community.task.get_current_sign_in_status.get();
 
     return data.has_sign_in;
   }
 
   async signIn() {
-    const data = await this.callApi<{
-      get_exp: number;
-      get_item_count: number;
-      get_item_name: string;
-      get_item_url: string;
-      get_score: number;
-    }>(API_SIGN_IN, {});
+    const data = await this.api.community.task.sign_in.post();
 
     return {
       item: data.get_item_name,
@@ -76,41 +57,42 @@ export class GF2BBSClient {
     };
   }
 
+  async getDailyTaskList() {
+    const data = await this.api.community.task.get_current_task_list.get();
+
+    return data.daily_task.map(item => ({
+      name: item.task_name,
+      count: item.complete_count,
+      maxCount: item.max_complete_count,
+    }));
+  }
+
+  async getTopicList() {
+    const { list } = await this.api.community.topic.list.get();
+
+    return list;
+  }
+
+  async visitTopic(id: number) {
+    await this.api.community.topic[id].get({ id });
+  }
+
+  async likeTopic(id: number) {
+    await this.api.community.topic.like[id].get({ id });
+  }
+
+  async shareTopic(id: number) {
+    await this.api.community.topic.share[id].get({ id });
+  }
+
   async getExchangeList() {
-    const { list } = await this.callApi<{
-      list: ExchangeItem[];
-      total: number;
-    }>(API_EXCHANGE_LIST);
+    const { list } = await this.api.community.item.exchange_list.get();
 
     return list;
   }
 
   async getUserInfo() {
-    const { user } = await this.callApi<{
-      user: {
-        auth_lock: number;
-        auth_type: number;
-        avatar: string;
-        exp: number;
-        fans: number;
-        favors: number;
-        follows: number;
-        game_commander_level: number;
-        game_nick_name: string;
-        game_uid: number;
-        ip_location: string;
-        is_admin: false;
-        is_author: false;
-        is_follow: false;
-        level: number;
-        likes: number;
-        next_lv_exp: number;
-        nick_name: string;
-        score: number;
-        signature: string;
-        uid: number;
-      };
-    }>(API_USER_INFO, {});
+    const { user } = await this.api.community.member.info.post();
 
     this.score = user.score;
 
@@ -118,7 +100,7 @@ export class GF2BBSClient {
   }
 
   async exchangeItem(id: number) {
-    await this.callApi(API_EXCHANGE_ITEM, { exchange_id: id });
+    await this.api.community.item.exchange.post({ exchange_id: id });
   }
 
   async exchangeIfCan(item: ExchangeItem) {
@@ -133,20 +115,5 @@ export class GF2BBSClient {
       this.score -= item.use_score;
     }
     return exchangeCount;
-  }
-
-  private async callApi<T = {}>(url: string, body?: Record<string, any>) {
-    const res: GF2BBSAPIResp<T> = await fetch(url, {
-      headers: {
-        ...(this.token ? { Authorization: this.token } : {}),
-        ...(body ? { 'Content-Type': 'application/json' } : {}),
-        ...COMMON_HEADER,
-      },
-      ...(body ? { method: 'POST', body: JSON.stringify(body) } : {}),
-    }).then(r => r.json());
-
-    if (res.Code !== 0) throw new Error(res.Message);
-
-    return res.data;
   }
 }
