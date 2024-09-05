@@ -27,6 +27,11 @@ export interface GF2API {
           channel_id: number;
         };
       },
+      {
+        account_name: string;
+        passwd: string;
+        source: string;
+      },
     ];
   };
   community: {
@@ -89,10 +94,10 @@ export interface GF2API {
           total: number;
         },
       ];
-      exchange: [unknown];
+      exchange: [unknown, { exchange_id: number }];
     };
     topic: {
-      [id: number]: [unknown];
+      [id: number]: [unknown, { id: number }];
       list: [
         {
           list: Array<{
@@ -102,10 +107,10 @@ export interface GF2API {
         },
       ];
       like: {
-        [id: number]: [null];
+        [id: number]: [null, { id: number }];
       };
       share: {
-        [id: number]: [null];
+        [id: number]: [null, { id: number }];
       };
     };
   };
