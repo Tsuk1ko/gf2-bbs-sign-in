@@ -1,6 +1,6 @@
-export const API_BASE = 'https://gf2-bbs-api.sunborngame.com';
+export const API_BASE = 'https://gf2-bbs-api.exiliumgf.com';
 
-const BBS_ORIGIN = 'https://gf2-bbs.sunborngame.com';
+const BBS_ORIGIN = 'https://gf2-bbs.exiliumgf.com';
 
 export const COMMON_HEADER = {
   Accept: 'application/json',
