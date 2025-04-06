@@ -7,7 +7,9 @@ if (!BBS_USERNAME || !BBS_PASSWORD) {
   process.exit(1);
 }
 
-const autoExchange = (AUTO_EXCHANGE || '基原信息核,次世代内存条,萨狄斯金,情报拼图,战场报告,解析图纸').split(',');
+const autoExchange = (
+  AUTO_EXCHANGE || '火控校准芯片,基原信息核,次世代内存条,情报拼图,萨狄斯金,战场报告,解析图纸'
+).split(',');
 
 console.log('自动兑换:', autoExchange);
 
@@ -67,18 +69,18 @@ try {
 
   console.log('当前积分:', (await client.getUserInfo()).score);
 
-  const itemMap = Object.fromEntries(
-    (await client.getExchangeList())
-      .filter(({ exchange_count, max_exchange_count }) => exchange_count < max_exchange_count)
-      .map(item => [item.item_name, item]),
+  const itemList = (await client.getExchangeList()).filter(
+    ({ exchange_count, max_exchange_count }) => exchange_count < max_exchange_count,
   );
 
   for (const name of autoExchange) {
-    const item = itemMap[name];
-    if (!item) continue;
-    const count = await client.exchangeIfCan(item);
-    if (count === 0) break;
-    console.log(`成功兑换【${name}*${count}】`);
+    const items = itemList.filter(({ item_name }) => item_name.includes(name));
+    if (!items.length) continue;
+    for (const item of items) {
+      const count = await client.exchangeIfCan(item);
+      if (count === 0) break;
+      console.log(`成功兑换【${name}*${count}】`);
+    }
   }
 } catch (error) {
   hasError = true;
