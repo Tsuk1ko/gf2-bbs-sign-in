@@ -1,9 +1,11 @@
 import { GF2BBSClient } from './client';
+import { getIsBin } from './config';
 
 const { BBS_USERNAME, BBS_PASSWORD, AUTO_EXCHANGE, FAILED_WEBHOOK } = process.env;
 
 if (!BBS_USERNAME || !BBS_PASSWORD) {
   console.error('No BBS_USERNAME or BBS_PASSWORD');
+  if (getIsBin()) throw new Error();
   process.exit(1);
 }
 
@@ -89,5 +91,6 @@ try {
 
 if (hasError) {
   if (FAILED_WEBHOOK) await fetch(FAILED_WEBHOOK).catch(console.error);
+  if (getIsBin()) throw new Error();
   process.exit(1);
 }

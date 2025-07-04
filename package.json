@@ -2,10 +2,14 @@
   "name": "gf2-bbs-sign-in",
   "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "build": "bun build --compile --outfile=./dist/gf2-bbs ./src/bin.ts"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "dotenv": "^17.0.1"
   },
   "peerDependencies": {
-    "typescript": "^5.4.5"
+    "typescript": "^5.8.3"
   }
 }
