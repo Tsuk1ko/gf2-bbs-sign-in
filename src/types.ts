@@ -7,7 +7,8 @@ export interface ExchangeItem {
   use_score: number;
   exchange_count: number;
   max_exchange_count: number;
-  cycle: 'day' | 'month';
+  /** day, month, life */
+  cycle: string;
 }
 
 export interface GF2APIResp<T = any> {

@@ -9,9 +9,7 @@ if (!BBS_USERNAME || !BBS_PASSWORD) {
   process.exit(1);
 }
 
-const autoExchange = (
-  AUTO_EXCHANGE || '火控校准芯片,基原信息核,次世代内存条,情报拼图,萨狄斯金,战场报告,解析图纸'
-).split(',');
+const autoExchange = (AUTO_EXCHANGE || 'day,month,life,*').split(',');
 
 console.log('自动兑换:', autoExchange);
 
@@ -75,11 +73,21 @@ try {
     ({ exchange_count, max_exchange_count }) => exchange_count < max_exchange_count,
   );
 
+  const exchangedItems = new Set<number>();
+
   for (const name of autoExchange) {
-    const items = itemList.filter(({ item_name }) => item_name.includes(name));
+    const items = itemList.filter(
+      ({ item_name, cycle, exchange_id }) =>
+        !exchangedItems.has(exchange_id) && (name === '*' || cycle === name || item_name.includes(name)),
+    );
     if (!items.length) continue;
     for (const item of items) {
-      const count = await client.exchangeIfCan(item);
+      const count = await client.exchangeIfCan(item).catch(e => {
+        console.error(`兑换【${item.item_name}】失败`, e);
+        hasError = true;
+        return 0;
+      });
+      exchangedItems.add(item.exchange_id);
       if (count === 0) break;
       console.log(`成功兑换【${name}*${count}】`);
     }

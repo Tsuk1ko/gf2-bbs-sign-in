@@ -14,7 +14,7 @@ type ApiTree<T> = T extends Array<any>
 export const createApi = <T>(
   base: string,
   handleFetch: (method: 'get' | 'post', url: string, data?: Record<string, any>) => Promise<any>,
-) =>
+): ApiTree<T> =>
   new Proxy(
     {},
     {
@@ -25,4 +25,4 @@ export const createApi = <T>(
           ? Reflect.get(target, p, receiver)
           : createApi(`${base}/${p}`, handleFetch),
     },
-  ) as any as ApiTree<T>;
+  ) as any;
