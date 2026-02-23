@@ -89,7 +89,7 @@ try {
       });
       exchangedItems.add(item.exchange_id);
       if (count === 0) break;
-      console.log(`成功兑换【${name}*${count}】`);
+      console.log(`成功兑换【${item.item_name}*${count}】`);
     }
   }
 } catch (error) {
